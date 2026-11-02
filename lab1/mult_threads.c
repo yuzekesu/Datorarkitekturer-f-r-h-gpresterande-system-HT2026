@@ -26,12 +26,20 @@ void helper_mult_vect(float* a, float* b, float* r, int num) {
   }
 }
 
+void helper_mult_std(float* a, float* b, float* r, int num) {
+  for (int i = 0; i < num; i++) {
+    r[i] = a[i] * b[i];
+  }
+}
+
 void* worker(void* arg) {
   struct work* w = (struct work*)arg;
   // TODO: repeat w->reps times: mult_std(w->a, w->b, w->r, w->count);
   // logic.
-  for (int i = 0; i < w->reps; ++i)
-    helper_mult_vect(w->a, w->b, w->r, w->count);
+  for (int i = 0; i < w->reps; ++i) {
+    helper_mult_std(w->a, w->b, w->r, w->count);
+    // helper_mult_vect(w->a, w->b, w->r, w->count);
+  }
   pthread_exit(NULL);
   return NULL;
 }
