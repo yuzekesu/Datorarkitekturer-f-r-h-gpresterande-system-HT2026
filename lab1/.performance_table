@@ -1,0 +1,20 @@
+// format: big/small
+# O0:
+Elapsed time std: 0.512250 / 0.514924
+Elapsed time vec: 0.472639 / 0.473366
+Speed-up vec/std: 1.08     / 1.09
+___
+# O1:
+Elapsed time std: 0.081435 / 0.080752
+Elapsed time vec: 0.081503 / 0.022761
+Speed-up vec/std: 1.00     / 3.55
+___
+# O2:
+Elapsed time std: 0.084772 / 0.083709
+Elapsed time vec: 0.081795 / 0.022688
+Speed-up vec/std: 1.04     / 3.69
+___
+# O3:
+Elapsed time std: 0.082032 / 0.023195
+Elapsed time vec: 0.081896 / 0.023168
+Speed-up vec/std: 1.00     / 1.00
