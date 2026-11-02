@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_THREADS 64  // the most threads the program can start
 struct work {           // everything one thread needs
@@ -52,6 +53,11 @@ int main(int argc, char* argv[]) {
   int remainder = num % nthreads;
   int offset = 0;
 
+  struct timespec ts_start;
+  struct timespec ts_end;
+  /*
+   */
+  clock_gettime(CLOCK_MONOTONIC, &ts_start);
   for (int t = 0; t < nthreads; ++t) {
     int count = part + (t < remainder ? 1 : 0);
 
@@ -74,6 +80,11 @@ int main(int argc, char* argv[]) {
   for (int t = 0; t < nthreads; ++t) {
     pthread_join(th[t], NULL);
   }
-  printf("Success terminate.\n");
+  clock_gettime(CLOCK_MONOTONIC, &ts_end_1);
+  /*
+   */
+  printf("Success terminate, duration: %fs\n",
+         (ts_end.tv_sec - ts_start.tv_sec) +
+             (ts_end.tv_nsec - ts_start.tv_nsec) * 1e-9);
   return 0;
 }
