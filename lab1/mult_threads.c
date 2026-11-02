@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_THREADS 64  // the most threads the program can start
 struct work {           // everything one thread needs
@@ -10,18 +11,25 @@ struct work {           // everything one thread needs
 
 void helper_mult_vect(float* a, float* b, float* r, int num) {
   float32x4_t va, vb, vr;
-  for (int i = 0; i < num; i += 4) {
+  int managed = 0;
+  for (int i = 0; i < num; i += 4, managed += 4) {
     va = vld1q_f32(&a[i]);
     vb = vld1q_f32(&b[i]);
     vr = vmulq_f32(va, vb);
     vst1q_f32(&r[i], vr);
+  }
+  // handle rest.
+  for (int i = managed; i < num; i++) {
+    w->r[i] = w->a[i] * w->b[i];
   }
 }
 
 void* worker(void* arg) {
   struct work* w = (struct work*)arg;
   // TODO: repeat w->reps times: mult_std(w->a, w->b, w->r, w->count);
-  for (int i = 0; i < w->reps; ++i) helper_mult_vect(w->a, w->b, w.r, w->count);
+  // logic.
+  for (int i = 0; i < w->reps; ++i)
+    helper_mult_vect(w->a, w->b, w->r, w->count);
   pthread_exit(NULL);
   return NULL;
 }
@@ -40,26 +48,30 @@ int main(int argc, char* argv[]) {
   pthread_t th[MAX_THREADS];
   struct work w[MAX_THREADS];  // one struct per thread: never pass &t
   int part = num / nthreads;
-  int _leftover = num;
-  for (int t = 0; t < nthreads; t++) {
-    // TODO: fill in w[t] (the last thread also takes the rest)
-    const int offset = t * (num / nthreads);
+  int remainder = num % nthreads;
+  int offset = 0;
+
+  for (int t = 0; t < nthreads; ++t) {
+    int count = part + (t < remainder ? 1 : 0);
+
     w[t].a = a + offset;
     w[t].b = b + offset;
-    w[t].count = _leftover & (offset + 1);
-    _leftover -= offset + 1;
+    w[t].r = r + offset;
+    w[t].count = count;
     w[t].reps = reps;
-    // TODO: pthread_create(&th[t], NULL, worker, &w[t]);
-    int rc = pthread_create(&threads[t], NULL, printHello, (void*)t);
-    if (rc) {
-      printf("Error: Unable to create thread, %d\n", rc);
-      exit(-1);
+
+    int rc = pthread_create(&th[t], NULL, worker, &w[t]);
+    if (rc != 0) {
+      fprintf(stderr, "pthread_create failed: %d\n", rc);
+      return EXIT_FAILURE;
     }
+
+    offset += count;
   }
 
   // TODO: pthread_join all threads, THEN take the end time
   for (int t = 0; t < nthreads; ++t) {
-    pthread_join(threads[t], NULL);
+    pthread_join(th[t], NULL);
   }
   printf("Success terminate.");
   return 0;
