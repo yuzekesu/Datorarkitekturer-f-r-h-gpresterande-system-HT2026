@@ -1,3 +1,4 @@
+#include <arm_neon.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +21,7 @@ void helper_mult_vect(float* a, float* b, float* r, int num) {
   }
   // handle rest.
   for (int i = managed; i < num; i++) {
-    w->r[i] = w->a[i] * w->b[i];
+    r[i] = a[i] * b[i];
   }
 }
 
@@ -73,6 +74,6 @@ int main(int argc, char* argv[]) {
   for (int t = 0; t < nthreads; ++t) {
     pthread_join(th[t], NULL);
   }
-  printf("Success terminate.");
+  printf("Success terminate.\n");
   return 0;
 }
