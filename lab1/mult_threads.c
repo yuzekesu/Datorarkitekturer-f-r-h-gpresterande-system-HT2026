@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
   for (int t = 0; t < nthreads; ++t) {
     pthread_join(th[t], NULL);
   }
-  clock_gettime(CLOCK_MONOTONIC, &ts_end_1);
+  clock_gettime(CLOCK_MONOTONIC, &ts_end);
   /*
    */
   printf("Success terminate, duration: %fs\n",
