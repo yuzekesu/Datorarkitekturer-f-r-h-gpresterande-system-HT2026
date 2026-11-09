@@ -1,6 +1,6 @@
 // skillnad: mer blocks
-// nvcc ex1.cu -o ex2
-// nsys nvprof ./ex2
+// nvcc ex1.cu -o ex2.o
+// nsys nvprof ./ex2.o
 
 #include <math.h>
 
@@ -34,7 +34,7 @@ int main() {
   cudaMemcpy(d_a, h_a, N * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(d_b, h_b, N * sizeof(float), cudaMemcpyHostToDevice);
   // Launch the kernel
-  multKernel<<<1, 256>>>(N, d_a, d_b, d_c);
+  multKernel<<<1, 1024>>>(N, d_a, d_b, d_c);
   // Copy result back to host
   cudaMemcpy(h_c, d_c, N * sizeof(float), cudaMemcpyDeviceToHost);
   // Check result for errors (all values should be 6.0f)

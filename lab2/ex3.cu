@@ -1,6 +1,6 @@
 // skillnad: mer trådar per block.
-// nvcc ex1.cu -o ex3
-// nsys nvprof ./ex3
+// nvcc ex1.cu -o ex3.o
+// nsys nvprof ./ex3.o
 
 #include <math.h>
 
