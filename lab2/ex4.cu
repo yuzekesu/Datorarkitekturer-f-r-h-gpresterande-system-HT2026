@@ -45,14 +45,16 @@ int main() {
     h_perm[i] = i;
   }
   // Shuffle perm
+#if 0
   for (int i = N - 1; i > 0; i--) {
     int j = rand() % (i + 1);
     std::swap(h_perm[i], h_perm[j]);
   }
-
+#endif
   // Copy data from host to device
   cudaMemcpy(d_a, h_a, N * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(d_b, h_b, N * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_perm, h_perm, N * sizeof(int), cudaMemcpyHostToDevice);
   // Launch the kernel
   int blockSize = 256;
   int numBlocks = (N + blockSize - 1) / blockSize;
@@ -68,8 +70,10 @@ int main() {
   cudaFree(d_a);
   cudaFree(d_b);
   cudaFree(d_c);
+  cudaFree(d_perm);
   delete[] h_a;
   delete[] h_b;
   delete[] h_c;
+  delete[] h_perm;
   return 0;
 }

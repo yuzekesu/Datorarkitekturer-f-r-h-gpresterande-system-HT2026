@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <iostream>
+__shared__ int vect[256];
 
 __global__ void multKernel(int n, float* a, float* b, float* c) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -22,11 +23,15 @@ int main() {
   h_a = new float[N];
   h_b = new float[N];
   h_c = new float[N];
-  // Allocate device memory
-  cudaMalloc(&d_a, N * sizeof(float));
-  cudaMalloc(&d_b, N * sizeof(float));
-  cudaMalloc(&d_c, N * sizeof(float));
+  // // Allocate device memory
+  // cudaMalloc(&d_a, N * sizeof(float));
+  // cudaMalloc(&d_b, N * sizeof(float));
+  // cudaMalloc(&d_c, N * sizeof(float));
   // Initialize host data
+  // Host memory that the GPU can reach directly
+  cudaHostAlloc(&h_a, N * sizeof(float), cudaHostAllocMapped);
+  cudaHostAlloc(&h_b, N * sizeof(float), cudaHostAllocMapped);
+  cudaHostAlloc(&h_c, N * sizeof(float), cudaHostAllocMapped);
   for (int i = 0; i < N; i++) {
     h_a[i] = 2.0f;
     h_b[i] = 3.0f;
@@ -35,10 +40,6 @@ int main() {
   // cudaMemcpy(d_a, h_a, N * sizeof(float), cudaMemcpyHostToDevice);
   // cudaMemcpy(d_b, h_b, N * sizeof(float), cudaMemcpyHostToDevice);
 
-  // Host memory that the GPU can reach directly
-  cudaHostAlloc(&h_a, N * sizeof(float), cudaHostAllocMapped);
-  cudaHostAlloc(&h_b, N * sizeof(float), cudaHostAllocMapped);
-  cudaHostAlloc(&h_c, N * sizeof(float), cudaHostAllocMapped);
   // The GPU's address of the same memory: no new memory, no copy
   cudaHostGetDevicePointer(&d_a, h_a, 0);
   cudaHostGetDevicePointer(&d_b, h_b, 0);
