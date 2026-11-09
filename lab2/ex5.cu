@@ -1,4 +1,8 @@
 // ex5.cu - CPU or GPU? K multiply-adds per element, in a register.
+
+// gcc -O2 -c fma_cpu.c -o fma_cpu.o
+// nvcc ex5.cu fma_cpu.o -o ex5 -lpthread
+// ./ex5
 #include <chrono>
 #include <cmath>
 #include <cstdio>
