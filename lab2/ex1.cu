@@ -1,6 +1,7 @@
 // nvcc --version (it should report release 12.6)
+// checked: V12.6.68
 // sudo jetson_clocks
-// nvcc ex1.cu -o ex1
+// nvcc ex1.cu -o ex1.o
 // nsys nvprof ./ex1
 
 #include <math.h>
