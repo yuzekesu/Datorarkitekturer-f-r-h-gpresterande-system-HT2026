@@ -1,3 +1,4 @@
+// skillnad: mer blocks
 // nvcc ex1.cu -o ex2
 // nsys nvprof ./ex2
 
