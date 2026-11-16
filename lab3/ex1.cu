@@ -19,7 +19,8 @@ int main(int argc, char** argv) {
   if (!input) return 0;
   // capture/display loop
   while (true) {
-    uchar3* image = NULL;  // can be uchar3, uchar4, float3, float4
+    // uchar3* image = NULL;  // can be uchar3, uchar4, float3, float4
+    uchar4* image = NULL;  // can be uchar3, uchar4, float3, float4
     int status = 0;        // see videoSource::Status
     if (!input->Capture(&image, 1000, &status))  // 1000ms timeout (default)
     {
