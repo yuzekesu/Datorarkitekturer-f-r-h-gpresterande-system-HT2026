@@ -15,6 +15,26 @@
 
 #define hist_t int
 
+__global__ void plotHistogramKernel(uchar4* image, hist_t* histogram, int width,
+                                    int height, int max_freq) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  uchar4 white_pixel = make_uchar4(255, 255, 255, 255);
+  uchar4 black_pixel = make_uchar4(0, 0, 0, 255);
+  if (index < 256) {
+    int freq = histogram[index] * 256 / max_freq;
+    for (int i = 0; i < 256; i++) {
+      int row = height - i - 1;
+      if (i <= freq) {
+        image[row * width + 2 * index] = white_pixel;
+        image[row * width + 2 * index + 1] = white_pixel;
+      } else {
+        image[row * width + 2 * index] = black_pixel;
+        image[row * width + 2 * index + 1] = black_pixel;
+      }
+    }
+  }
+}
+
 __global__ void calcHistogramKernel(uchar4* gray, hist_t* array, int width,
                                     int height) {
   const int x = threadIdx.x + blockDim.x * blockIdx.x;
