@@ -42,14 +42,30 @@ __global__ void plotHistogramKernel(uchar4* image, hist_t* histogram, int width,
 
 __global__ void calcHistogramKernel(uchar4* gray, hist_t* array, int width,
                                     int height) {
+  __shared__ hist_t histo_local[256];
   const int x = threadIdx.x + blockDim.x * blockIdx.x;
   const int y = threadIdx.y + blockDim.y * blockIdx.y;
   if (x >= width || y >= height) return;
 
   const int index = x + y * width;
   const int gray_value = gray[index].x;
-  atomicAdd(array + gray_value, 1);
+
+  // let the first 256 threads to clear to the global array.
+  if (index < 256) {
+    histo_local[index] = 0;
+  }
+  __syncthreads();
+
+  // atomicAdd(array + gray_value, 1);
   // ++array[gray_value];
+  // histo_local[gray_value] += 1;
+  atomicAdd(histo_local + gray_value, 1);
+  __syncthreads();
+
+  // let the first 256 threads to write to the global array.
+  if (index < 256) {
+    array[index] = histo_local[index];
+  }
 }
 
 __device__ void helper(uchar4* image, uchar4* grayscaled, size_t index) {
