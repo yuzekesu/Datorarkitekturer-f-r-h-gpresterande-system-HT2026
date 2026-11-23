@@ -13,16 +13,18 @@
 #include <jetson-utils/videoSource.h>
 #include <stdio.h>
 
-#define int hist_t
+#define hist_t int
 
-__global__ void calcHistogramKernel(uchar4* gray, hist_t* array) {
+__global__ void calcHistogramKernel(uchar4* gray, hist_t* array, int width,
+                                    int height) {
   const int x = threadIdx.x + blockDim.x * blockIdx.x;
   const int y = threadIdx.y + blockDim.y * blockIdx.y;
   if (x >= width || y >= height) return;
 
   const int index = x + y * width;
-  // atomicAdd(array + gray[index], 1);
-  ++array[gray[index]];
+  const int gray_value = gray[index].x;
+  atomicAdd(array + gray_value, 1);
+  // ++array[gray_value];
 }
 
 __device__ void helper(uchar4* image, uchar4* grayscaled, size_t index) {
@@ -62,9 +64,11 @@ int main(int argc, char** argv) {
   /////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////
   // lab4 initialize:
-  hist_t array[256], *g_array;
-  cudaHostAlloc(&array, 256 * sizeof(hist_t), cudaHostAllocMapped);
-  cudaHostGetDevicePointer(&g_array, array, 0);
+  hist_t *array = new hist_t[256], *g_array;
+  // cudaHostAlloc(&array, 256 * sizeof(hist_t), cudaHostAllocMapped);
+  // cudaHostGetDevicePointer(&g_array, array, 0);
+  cudaMalloc(&g_array, 256 * sizeof(hist_t));
+
   /////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////
@@ -80,7 +84,7 @@ int main(int argc, char** argv) {
       if (status == videoSource::TIMEOUT) continue;
       break;  // EOS
     }
-    if (output != NULL) {
+    if (output_gray != NULL) {
       // Launch the kernel
       {
         const dim3 gridsize = {40, 90};
@@ -100,8 +104,11 @@ int main(int argc, char** argv) {
       {
         const dim3 gridsize = {40, 90};
         const dim3 blocksize = {32, 8};
-        calcHistogramKernel << gridsize, blocksize >> (grayscaled_gpu, g_array);
+        calcHistogramKernel<<<gridsize, blocksize>>>(
+            grayscaled_gpu, g_array, input->GetWidth(), input->GetHeight());
         cudaDeviceSynchronize();
+        cudaMemcpy(array, g_array, 256 * sizeof(hist_t),
+                   cudaMemcpyDeviceToHost);
       }
 
       // print result.
