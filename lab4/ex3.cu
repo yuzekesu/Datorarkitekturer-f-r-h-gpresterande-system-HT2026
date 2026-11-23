@@ -45,14 +45,15 @@ __global__ void calcHistogramKernel(uchar4* gray, hist_t* array, int width,
   __shared__ hist_t histo_local[256];
   const int x = threadIdx.x + blockDim.x * blockIdx.x;
   const int y = threadIdx.y + blockDim.y * blockIdx.y;
+  const int thread_index = threadIdx.x + blockDim.x * threadIdx.y;
   if (x >= width || y >= height) return;
 
   const int index = x + y * width;
   const int gray_value = gray[index].x;
 
   // let the first 256 threads to clear to the global array.
-  if (index < 256) {
-    histo_local[index] = 0;
+  if (thread_index < 256) {
+    histo_local[thread_index] = 0;
   }
   __syncthreads();
 
@@ -63,8 +64,9 @@ __global__ void calcHistogramKernel(uchar4* gray, hist_t* array, int width,
   __syncthreads();
 
   // let the first 256 threads to write to the global array.
-  if (index < 256) {
-    array[index] = histo_local[index];
+  if (thread_index < 256) {
+    // array[thread_index] = histo_local[thread_index];
+    atomicAdd(array + thread_index, histo_local[thread_index]);
   }
 }
 
@@ -146,7 +148,8 @@ int main(int argc, char** argv) {
       // lab4 here:
       cudaMemset((void*)g_array, 0, 256 * sizeof(hist_t));
       {
-        const dim3 gridsize = {40, 90};
+        const dim3 gridsize = {40, 23};
+        // const dim3 blocksize = {32, 32};
         const dim3 blocksize = {32, 8};
         calcHistogramKernel<<<gridsize, blocksize>>>(
             grayscaled_gpu, g_array, input->GetWidth(), input->GetHeight());
