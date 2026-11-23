@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
       // lab4 here:
       cudaMemset((void*)g_array, 0, 256 * sizeof(hist_t));
       {
-        const dim3 gridsize = {40, 23};
+        const dim3 gridsize = {40, 90};
         // const dim3 blocksize = {32, 32};
         const dim3 blocksize = {32, 8};
         calcHistogramKernel<<<gridsize, blocksize>>>(
