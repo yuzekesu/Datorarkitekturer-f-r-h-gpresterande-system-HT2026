@@ -19,11 +19,16 @@ __global__ void plotHistogramKernel(uchar4* image, hist_t* histogram, int width,
                                     int height, int max_freq) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   uchar4 white_pixel = make_uchar4(255, 255, 255, 255);
-  uchar4 black_pixel = make_uchar4(0, 0, 0, 255);
+  // uchar4 black_pixel = make_uchar4(0, 0, 0, 255);
+
   if (index < 256) {
     int freq = histogram[index] * 256 / max_freq;
     for (int i = 0; i < 256; i++) {
       int row = height - i - 1;
+      uchar4 black_pixel = image[row * width + 2 * index];
+      black_pixel.x /= 2;
+      black_pixel.y /= 2;
+      black_pixel.z /= 2;
       if (i <= freq) {
         image[row * width + 2 * index] = white_pixel;
         image[row * width + 2 * index + 1] = white_pixel;
@@ -55,6 +60,9 @@ __device__ void helper(uchar4* image, uchar4* grayscaled, size_t index) {
 
   uchar4& cur = grayscaled[index];
   cur.x = cur.y = cur.z = gray;
+
+  // alpha here.
+  cur.w = 128;
 }
 
 __global__ void rgb2grayKernel(uchar4* image, uchar4* grayscaled, int width,
@@ -139,6 +147,13 @@ int main(int argc, char** argv) {
       }
       sprintf(str, "%d", sum);
       output_gray->SetStatus(str);
+
+      // graph:
+      {
+        plotHistogramKernel<<<256, 1>>>(grayscaled_gpu, g_array,
+                                        input->GetWidth(), input->GetHeight(),
+                                        20000);
+      }
       /////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////
@@ -149,7 +164,8 @@ int main(int argc, char** argv) {
       output_gray->Render(grayscaled_gpu, input->GetWidth(),
                           input->GetHeight());
       // Update status bar
-      if (!output_gray->IsStreaming())  // check if the user quit
+      if (!output_gray->IsStreaming())  // check if the
+                                        // user quit
         break;
     }
   }
